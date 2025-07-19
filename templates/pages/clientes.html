@@ -1,0 +1,309 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Clientes {% endblock title %}
+
+{% block content %}
+<div class="content">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="form-inline my-2 my-lg-0">
+            <input type="text" id="buscaCpf" class="form-control mr-sm-2 w-25" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-primary" id="btnBuscarCpf">Buscar</button>
+            <button class="btn btn-secondary" id="btnLimparBusca">Limpar</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table tablesorter" id="tabelaClientes">
+              <thead class="text-primary">
+                <tr>
+                  <th class="w-25 text-center">Ações</th>
+                  <th>Nome</th>
+                  <th class="text-center">Renda Familiar</th>
+                </tr>
+              </thead>
+              <tbody id="clientesTbody">
+                {% for cliente in clientes.results %}
+                  {% if cliente.renda_familiar %}
+                    {% if cliente.renda_familiar <= 980 %}
+                      <tr>
+                        <td class="w-25 text-center">
+                          <button type="button" class="btn btn-danger" data-cpf="{{ cliente.cpf }}">Apagar</button>
+                          <button type="button" class="btn btn-primary btn-edit" data-cpf="{{ cliente.cpf }}">Editar</button>
+                        </td>
+                        <td>{{ cliente.nome }}</td>
+                        <td class="text-center alert alert-danger">R$ {{ cliente.renda_familiar | floatformat:2 }}</td>
+                      </tr>
+                    {% elif cliente.renda_familiar <= 2500 %}
+                      <tr>
+                        <td class="w-25 text-center">
+                          <button type="button" class="btn btn-danger" data-cpf="{{ cliente.cpf }}">Apagar</button>
+                          <button type="button" class="btn btn-primary btn-edit" data-cpf="{{ cliente.cpf }}">Editar</button>
+                        </td>
+                        <td>{{ cliente.nome }}</td>
+                        <td class="text-center alert alert-warning">R$ {{ cliente.renda_familiar | floatformat:2 }}</td>
+                      </tr>
+                    {% else %}
+                      <tr>
+                        <td class="w-25 text-center">
+                          <button type="button" class="btn btn-danger" data-cpf="{{ cliente.cpf }}">Apagar</button>
+                          <button type="button" class="btn btn-primary btn-edit" data-cpf="{{ cliente.cpf }}">Editar</button>
+                        </td>
+                        <td>{{ cliente.nome }}</td>
+                        <td class="text-center alert alert-success">R$ {{ cliente.renda_familiar | floatformat:2 }}</td>
+                      </tr>
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div id="nenhumCliente" class="text-center py-4 d-none">
+            <h4 class="card-title">Nenhum cliente encontrado.</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editClienteModal" tabindex="-1" aria-labelledby="editClienteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background-color: #27293d;">
+      <div class="card">
+        <div class="card-body">
+          <form id="editClienteForm" class="needs-validation" novalidate>
+            <div class="card-header position-relative">
+              <h5 class="modal-title" id="editClienteModalLabel">Editar Cliente</h5>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="editNome" class="form-label">Nome</label>
+                <input type="text" class="form-control" id="editNome" required>
+                <div id="editNomeInvalid" class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="editCpf" class="form-label">CPF</label>
+                <input type="text" class="form-control" id="editCpf" required readonly>
+                <div id="editCpfInvalid" class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="editDataNasc" class="form-label">Data de Nascimento</label>
+                <input type="date" class="form-control" id="editDataNasc" required>
+                <div id="editDataNascInvalid" class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="editRendaFam" class="form-label">Renda Familiar</label>
+                <input type="number" step=".01" class="form-control" id="editRendaFam" required>
+                <div id="editRendaFamInvalid" class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Buscar cliente por CPF
+    const btnBuscar = document.getElementById('btnBuscarCpf');
+    const btnLimpar = document.getElementById('btnLimparBusca');
+    const inputBusca = document.getElementById('buscaCpf');
+    const tbody = document.getElementById('clientesTbody');
+    const tabela = document.getElementById('tabelaClientes');
+    const nenhumCliente = document.getElementById('nenhumCliente');
+    const tbodyOriginal = tbody.innerHTML;
+
+    btnBuscar.addEventListener('click', function() {
+      const cpf = inputBusca.value.trim();
+      if (cpf === '') {
+        tbody.innerHTML = tbodyOriginal;
+        tabela.classList.remove('d-none');
+        nenhumCliente.classList.add('d-none');
+        return;
+      }
+      fetch(`http://127.0.0.1:8000/api/v1/clientes/${cpf}`)
+        .then(response => {
+          if (!response.ok) throw new Error();
+          return response.json();
+        })
+        .then(cliente => {
+          if (!cliente || !cliente.cpf) {
+            tabela.classList.add('d-none');
+            nenhumCliente.classList.remove('d-none');
+            return;
+          }
+          let rendaClass = 'alert-success';
+          if (cliente.renda_familiar <= 980) rendaClass = 'alert-danger';
+          else if (cliente.renda_familiar <= 2500) rendaClass = 'alert-warning';
+          tbody.innerHTML = `
+            <tr>
+              <td class="w-25 text-center">
+                <button type="button" class="btn btn-danger" data-cpf="${cliente.cpf}">Apagar</button>
+                <button type="button" class="btn btn-primary" data-cpf="${cliente.cpf}">Editar</button>
+              </td>
+              <td>${cliente.nome}</td>
+              <td class="text-center alert ${rendaClass}">R$ ${parseFloat(cliente.renda_familiar).toFixed(2)}</td>
+            </tr>
+          `;
+          tabela.classList.remove('d-none');
+          nenhumCliente.classList.add('d-none');
+        })
+        .catch(() => {
+          tbody.innerHTML = '';
+          tabela.classList.add('d-none');
+          nenhumCliente.classList.remove('d-none');
+        });
+    });
+
+    btnLimpar.addEventListener('click', function() {
+      inputBusca.value = '';
+      tbody.innerHTML = tbodyOriginal;
+      tabela.classList.remove('d-none');
+      nenhumCliente.classList.add('d-none');
+    });
+    
+    // Apagar cliente
+    document.querySelectorAll('.btn-danger').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        const cpf = btn.getAttribute('data-cpf');
+
+        if (!confirm('Tem certeza que deseja apagar este cliente?')) {
+          e.preventDefault();
+        } else {
+          fetch(`http://127.0.0.1:8000/api/v1/clientes/${cpf}`, {
+            method: 'DELETE'
+          })
+          .then(response => {
+            if (response.ok) {
+              btn.closest('tr').remove();
+              alert('Cliente apagado com sucesso!');
+            } else {
+              alert('Erro ao apagar cliente.');
+            }
+          })
+          .catch(() => {
+            alert('Erro ao conectar à API.');
+          });
+        }
+      });
+    });
+    
+    // Editar cliente
+    document.querySelectorAll('.btn-edit').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        const cpf = btn.getAttribute('data-cpf');
+        fetch(`http://127.0.0.1:8000/api/v1/clientes/${cpf}`)
+          .then(response => response.json())
+          .then(cliente => {
+            document.getElementById('editNome').value = cliente.nome;
+            document.getElementById('editCpf').value = cliente.cpf;
+            document.getElementById('editDataNasc').value = cliente.data_nascimento;
+            document.getElementById('editRendaFam').value = cliente.renda_familiar;
+            var modal = new bootstrap.Modal(document.getElementById('editClienteModal'));
+            modal.show();
+          });
+      });
+    });
+
+    // Salvar edição
+    document.getElementById('editClienteForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const editNome = document.getElementById('editNome');
+      const editNomeInvalid = document.getElementById('editNomeInvalid');
+      const editCpf = document.getElementById('editCpf');
+      const editCpfInvalid = document.getElementById('editCpfInvalid');
+      const editDataNasc = document.getElementById('editDataNasc');
+      const editDataNascInvalid = document.getElementById('editDataNascInvalid');
+      const editRendaFam = document.getElementById('editRendaFam');
+      const editRendaFamInvalid = document.getElementById('editRendaFamInvalid');
+
+      fetch(`http://127.0.0.1:8000/api/v1/clientes/${editCpf.value}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          nome: editNome.value,
+          cpf: editCpf.value,
+          data_nascimento: editDataNasc.value,
+          renda_familiar: editRendaFam.value
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          if (response.status == 400) {
+            return Promise.all([ response.json(), response.status ]);
+          } else {
+            throw new Error(response.status);
+          }
+        }
+        return Promise.all([ response.json(), response.status ]);
+      })
+      .then(([ data, status ]) => {
+        if (status == 400) {
+          if ('nome' in data) {
+            editNomeInvalid.innerText = data['nome'][0];
+            editNomeInvalid.style.display = 'block';
+            editNome.classList.remove('is-valid');
+            editNome.classList.add('is-invalid');
+          } else {
+            editNomeInvalid.style.display = 'none';
+            editNome.classList.remove('is-invalid');
+            editNome.classList.add('is-valid');
+          }
+
+          if ('cpf' in data) {
+            editCpfInvalid.innerText = data['cpf'][0];
+            editCpfInvalid.style.display = 'block';
+            editCpf.classList.remove('is-valid');
+            editCpf.classList.add('is-invalid');
+          } else {
+            editCpfInvalid.style.display = 'none';
+            editCpf.classList.remove('is-invalid');
+            editCpf.classList.add('is-valid');
+          }
+
+          if ('data_nascimento' in data) {
+            editDataNascInvalid.innerText = data['data_nascimento'][0];
+            editDataNascInvalid.style.display = 'block';
+            editDataNasc.classList.remove('is-valid');
+            editDataNasc.classList.add('is-invalid');
+          } else {
+            editDataNascInvalid.style.display = 'none';
+            editDataNasc.classList.remove('is-invalid');
+            editDataNasc.classList.add('is-valid');
+          }
+
+          if ('renda_familiar' in data) {
+            editRendaFamInvalid.innerText = data['renda_familiar'][0];
+            editRendaFamInvalid.style.display = 'block';
+            editRendaFam.classList.remove('is-valid');
+            editRendaFam.classList.add('is-invalid');
+          } else {
+            editRendaFamInvalid.style.display = 'none';
+            editRendaFam.classList.remove('is-invalid');
+            editRendaFam.classList.add('is-valid');
+          }
+
+        } else {
+          alert('Cliente editado com sucesso!');
+          location.reload();
+        }
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    });
+  });
+</script>
+{% endblock content %}

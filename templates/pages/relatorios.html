@@ -1,0 +1,109 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Relatórios {% endblock title %}
+
+{% block content %}
+<div class="content">
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-end">
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-sm btn-primary btn-simple active" id="0">
+                    <input type="radio" name="options" checked>
+                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mês</span>
+                    <span class="d-block d-sm-none">
+                        <i class="tim-icons icon-single-02"></i>
+                    </span>
+                </label>
+                <label class="btn btn-sm btn-primary btn-simple" id="1">
+                    <input type="radio" class="d-none" name="options">
+                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Semana</span>
+                    <span class="d-block d-sm-none">
+                        <i class="tim-icons icon-gift-2"></i>
+                    </span>
+                </label>
+                <label class="btn btn-sm btn-primary btn-simple" id="2">
+                    <input type="radio" class="d-none" name="options">
+                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Hoje</span>
+                    <span class="d-block d-sm-none">
+                        <i class="tim-icons icon-tap-02"></i>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4 col-12 mb-4">
+            <div class="card card-chart h-100">
+                <div class="card-header">
+                    <h5 class="card-category">Clientes maiores de 18 anos com renda familiar acima da média</h5>
+                    <h3 class="card-title" id="maiores-18-media">0</h3>
+                </div>
+                <div class="card-body"></div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-12 mb-4">
+            <div class="card p-3 h-100" style="max-width: 100%;">
+                <div class="d-flex justify-content-between flex-wrap">
+                    <div>
+                        <span class="text-muted" style="font-size: 1rem;">Quantidade de clientes</span>
+                        <h3 class="card-title" id="total-clientes">0</h3>
+                    </div>
+                    <div class="ms-4">
+                        <div class="mb-1 d-flex justify-content-end align-items-center">
+                            <span style="margin-right:5px;">A - <span style="font-weight:bold;" id="classe-a">0</span></span>
+                            <span class="ms-1" style="color:#00bf9a; font-size: 1rem;">●</span>
+                        </div>
+                        <div class="mb-1 d-flex justify-content-end align-items-center">
+                            <span style="margin-right:5px;">B - <span style="font-weight:bold;" id="classe-b">0</span></span>
+                            <span class="ms-1" style="color:#ff9f89; font-size: 1rem;">●</span>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center">
+                            <span style="margin-right:5px;">C - <span style="font-weight:bold;" id="classe-c">0</span></span>
+                            <span class="ms-1" style="color:#fd77a4; font-size: 1rem;">●</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const urls = {
+        0: 'http://127.0.0.1:8000/api/v1/clientes/mes',
+        1: 'http://127.0.0.1:8000/api/v1/clientes/semana',
+        2: 'http://127.0.0.1:8000/api/v1/clientes/hoje'
+    };
+
+    function atualizarDashboard(url) {
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('maiores-18-media').textContent = data.maiores_18_acima_media ?? 0;
+                document.getElementById('total-clientes').textContent = data.total_clientes ?? 0;
+                document.getElementById('classe-a').textContent = data.classe_a ?? 0;
+                document.getElementById('classe-b').textContent = data.classe_b ?? 0;
+                document.getElementById('classe-c').textContent = data.classe_c ?? 0;
+            })
+            .catch(() => {
+                // Em caso de erro, pode exibir mensagem ou manter valores zerados
+            });
+    }
+
+    // Carrega dados iniciais (Mês)
+    atualizarDashboard(urls[0]);
+
+    // Adiciona evento aos botões
+    document.querySelectorAll('.btn-group-toggle label').forEach(function(label) {
+        label.addEventListener('click', function() {
+            const id = this.id;
+            if (urls[id]) {
+                atualizarDashboard(urls[id]);
+            }
+        });
+    });
+});
+</script>
+{% endblock content %}

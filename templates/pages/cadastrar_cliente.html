@@ -1,0 +1,170 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Tables {% endblock title %}
+
+{% block content %}
+<div class="content">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <form id="myForm" class="needs-validation" novalidate>
+            <div class="row">
+              <div class="col-12 mb-3">
+                <div class="form-group">
+                  <label for="nome" class="form-label">Nome</label>
+                  <input type="text" class="form-control" id="nome" placeholder="Até 150 caracteres." required>
+                  <div id="nomeInvalid" class="invalid-feedback"></div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12 col-md-4 mb-3">
+                <div class="form-group">
+                  <label for="cpf" class="form-label">CPF</label>
+                  <input type="text" class="form-control" id="cpf" placeholder="11 dígitos (Sem pontuação)." required>
+                  <div id="cpfInvalid" class="invalid-feedback"></div>
+                </div>
+              </div>
+              <div class="col-12 col-md-4 mb-3">
+                <div class="form-group">
+                  <label for="dataNasc" class="form-label">Data de Nascimento</label>
+                  <input type="date" class="form-control" id="dataNasc" required>
+                  <div id="dataNascInvalid" class="invalid-feedback"></div>
+                </div>
+              </div>
+              <div class="col-12 col-md-4 mb-3">
+                <div class="form-group">
+                  <label for="rendaFam" class="form-label">Renda Familiar</label>
+                  <input type="number" step=".01" class="form-control" id="rendaFam" placeholder="Até 150 caracteres." required>
+                  <div id="rendaFamInvalid" class="invalid-feedback"></div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-fill btn-primary">Cadastrar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    'use strict';
+
+    const form = document.forms.myForm;
+
+    const nome = document.getElementById('nome');
+    const nomeInvalid = document.getElementById('nomeInvalid');
+    const cpf = document.getElementById('cpf');
+    const cpfInvalid = document.getElementById('cpfInvalid');
+    const dataNasc = document.getElementById('dataNasc');
+    const dataNascInvalid = document.getElementById('dataNascInvalid');
+    const rendaFam = document.getElementById('rendaFam');
+    const rendaFamInvalid = document.getElementById('rendaFamInvalid');
+
+    form.addEventListener('submit', event => {
+      fetch("http://127.0.0.1:8000/api/v1/clientes/", {
+        method: "POST",
+        body: JSON.stringify({
+          nome: form.nome.value,
+          cpf: form.cpf.value,
+          data_nascimento: form.dataNasc.value,
+          renda_familiar: form.rendaFam.value
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          if (response.status == 400) {
+            return Promise.all([ response.json(), response.status ]);
+          } else {
+            throw new Error(response.status);
+          }
+        }
+        return Promise.all([ response.json(), response.status ]);
+      })
+      .then(([ data, status ]) => {
+        if (status == 400) {
+          if ('nome' in data) {
+            nomeInvalid.innerText = data['nome'][0];
+            nomeInvalid.style.display = 'block';
+            nome.classList.remove('is-valid');
+            nome.classList.add('is-invalid');
+          } else {
+            nomeInvalid.style.display = 'none';
+            nome.classList.remove('is-invalid');
+            nome.classList.add('is-valid');
+          }
+
+          if ('cpf' in data) {
+            cpfInvalid.innerText = data['cpf'][0];
+            cpfInvalid.style.display = 'block';
+            cpf.classList.remove('is-valid');
+            cpf.classList.add('is-invalid');
+          } else {
+            cpfInvalid.style.display = 'none';
+            cpf.classList.remove('is-invalid');
+            cpf.classList.add('is-valid');
+          }
+
+          if ('data_nascimento' in data) {
+            dataNascInvalid.innerText = data['data_nascimento'][0];
+            dataNascInvalid.style.display = 'block';
+            dataNasc.classList.remove('is-valid');
+            dataNasc.classList.add('is-invalid');
+          } else {
+            dataNascInvalid.style.display = 'none';
+            dataNasc.classList.remove('is-invalid');
+            dataNasc.classList.add('is-valid');
+          }
+
+          if ('renda_familiar' in data) {
+            rendaFamInvalid.innerText = data['renda_familiar'][0];
+            rendaFamInvalid.style.display = 'block';
+            rendaFam.classList.remove('is-valid');
+            rendaFam.classList.add('is-invalid');
+          } else {
+            rendaFamInvalid.style.display = 'none';
+            rendaFam.classList.remove('is-invalid');
+            rendaFam.classList.add('is-valid');
+          }
+
+        } else {
+          showNotification('top','center', 'success', 'Cliente cadastrado com sucesso!');
+          form.reset();
+        }
+      })
+      .catch(error => {
+        console.error(error);
+      });
+
+      event.preventDefault();
+      event.stopPropagation();
+    }, false);
+  })();
+
+  function showNotification(from, align, type, message) {
+    $.notify({
+      icon: "tim-icons icon-bell-55",
+      message: message
+
+    }, {
+      type: type,
+      timer: 8000,
+      placement: {
+        from: from,
+        align: align
+      }
+    });
+  }
+</script>
+{% endblock content %}

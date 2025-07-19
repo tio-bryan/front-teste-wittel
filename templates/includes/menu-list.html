@@ -1,0 +1,21 @@
+{% load i18n static admin_black %}
+<ul class="nav">
+  <li class="{% if 'clientes' in segment %} active {% endif %}">
+    <a href="{% url 'clientes' %}">
+      <i class="tim-icons icon-single-02"></i>
+      <p>Clientes</p>
+    </a>
+  </li>
+  <li class="{% if 'cadastrar_cliente' in segment %} active {% endif %}">
+    <a href="{% url 'cadastrar_cliente' %}">
+      <i class="tim-icons icon-simple-add"></i>
+      <p>Cadastrar Cliente</p>
+    </a>
+  </li>
+  <li class="{% if 'dashboard' in segment %} active {% endif %}">
+    <a href="{% url 'relatorios' %}">
+      <i class="tim-icons icon-chart-pie-36"></i>
+      <p>Relatórios</p>
+    </a>
+  </li>
+</ul>
