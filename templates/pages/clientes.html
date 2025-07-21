@@ -82,12 +82,12 @@
             <div class="modal-body">
               <div class="mb-3">
                 <label for="editNome" class="form-label">Nome</label>
-                <input type="text" class="form-control" id="editNome" required>
+                <input type="text" class="form-control" id="editNome" maxlength="150" required>
                 <div id="editNomeInvalid" class="invalid-feedback"></div>
               </div>
               <div class="mb-3">
                 <label for="editCpf" class="form-label">CPF</label>
-                <input type="text" class="form-control" id="editCpf" required readonly>
+                <input type="text" class="form-control" id="editCpf" maxlength="11" required readonly>
                 <div id="editCpfInvalid" class="invalid-feedback"></div>
               </div>
               <div class="mb-3">
@@ -97,7 +97,7 @@
               </div>
               <div class="mb-3">
                 <label for="editRendaFam" class="form-label">Renda Familiar</label>
-                <input type="number" step=".01" class="form-control" id="editRendaFam" required>
+                <input type="number" step=".01" class="form-control" id="editRendaFam" min="0" max="9999999999" required>
                 <div id="editRendaFamInvalid" class="invalid-feedback"></div>
               </div>
             </div>

@@ -14,7 +14,7 @@
               <div class="col-12 mb-3">
                 <div class="form-group">
                   <label for="nome" class="form-label">Nome</label>
-                  <input type="text" class="form-control" id="nome" placeholder="Até 150 caracteres." required>
+                  <input type="text" class="form-control" id="nome" maxlength="150" placeholder="Até 150 caracteres." required>
                   <div id="nomeInvalid" class="invalid-feedback"></div>
                 </div>
               </div>
@@ -23,7 +23,7 @@
               <div class="col-12 col-md-4 mb-3">
                 <div class="form-group">
                   <label for="cpf" class="form-label">CPF</label>
-                  <input type="text" class="form-control" id="cpf" placeholder="11 dígitos (Sem pontuação)." required>
+                  <input type="text" class="form-control" id="cpf" maxlength="11" placeholder="11 dígitos (Sem pontuação)." required>
                   <div id="cpfInvalid" class="invalid-feedback"></div>
                 </div>
               </div>
@@ -37,7 +37,7 @@
               <div class="col-12 col-md-4 mb-3">
                 <div class="form-group">
                   <label for="rendaFam" class="form-label">Renda Familiar</label>
-                  <input type="number" step=".01" class="form-control" id="rendaFam" placeholder="Até 150 caracteres." required>
+                  <input type="number" step=".01" class="form-control" id="rendaFam" min="0" max="9999999999" placeholder="Até 10 caracteres." required>
                   <div id="rendaFamInvalid" class="invalid-feedback"></div>
                 </div>
               </div>
